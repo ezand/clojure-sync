@@ -1,0 +1,8 @@
+pom.xml
+.lein-repl-history
+.idea
+*.iml
+*.ipr
+*.iws
+target
+properties.json
