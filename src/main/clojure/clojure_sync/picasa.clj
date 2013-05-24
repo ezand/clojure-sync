@@ -1,18 +1,19 @@
 (ns clojure-sync.picasa
-  (:use [clojure-sync.core]
+  (:use [clojure-sync.common]
         [clojure-config.core]
         [cloogle-api.picasa])
-  (:require [clojure-sync.log :as log]))
+  (:require [clojure-sync.log :as log]
+            [clojure-sync.google :as google]))
 
-(defn picasa-config []
+(defn config []
   (-> (load-config (config-file)) :picasa ))
 
 (defn- set-status! [status]
-  (let [config (assoc (picasa-config) :enabled? status)]
+  (let [config (assoc (config) :enabled? status)]
     (set-value (config-file) :picasa config)))
 
 (defn enable! []
-  (if (-> (get-value (config-file) :google ) :enabled? )
+  (if (:enabled? (google/config))
     (do
       (auth "Clojure Sync")
       (set-status! true))
@@ -23,7 +24,11 @@
 (defn disable! [] (set-status! false))
 
 (defn watched-folders []
-  (-> (picasa-config) :watched-folders ))
+  (-> (config) :watched-folders ))
 
 (defn watch-event-handler [watch-event]
-  (log/info watch-event))
+  (if (:enabled? (config))
+    (do
+      (case (:event watch-event)
+        "ENTRY_CREATE" (prn (str "Created: " (str (:file watch-event))))
+        "ENTRY_MODIFY" (prn (str "Modified: " (str (:file watch-event))))))))
